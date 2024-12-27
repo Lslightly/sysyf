@@ -2,8 +2,6 @@ import logging
 import os
 import subprocess
 import sys
-import tempfile
-from typing import List, Tuple
 
 import pytest
 
@@ -36,7 +34,7 @@ class SYCase:
     def out_path(self) -> str:
         return self._path_under_dir(self._name+".out")
 
-def find_test_cases() -> List[Tuple[str, str]]:
+def find_test_cases() -> list[tuple[str, str]]:
     result = []
     for dir, mode in [(os.path.join(CWD, mode), mode) for mode in ["Easy", "Medium", "Hard"]]:
         names = sorted(list(
@@ -53,7 +51,7 @@ def run_command_in_shell(cmd: str, input: None | str=None):
     
 def generate_ir(test_case: SYCase, ll_path: str):
     logging.info("Generate IR...")
-    compile_cmd = f"{sys.executable} {Compiler} -emit-ir -o {ll_path} {test_case.sy_path}"
+    compile_cmd = f"{sys.executable} {Compiler} --emit-ir -o {ll_path} {test_case.sy_path}"
     compile_proc = run_command_in_shell(compile_cmd)
     if compile_proc.returncode != 0:
         logging.error(' '.join(["Generate IR error:", compile_cmd, compile_proc.stdout, compile_proc.stderr]))
@@ -93,4 +91,4 @@ def test_compiler(mode, case_name, tmp_path, caplog):
     generate_ir(test_case, ll_path)
     generate_bin(ll_path, bin_path)
     exec_bin(test_case, bin_path)
-    
+
