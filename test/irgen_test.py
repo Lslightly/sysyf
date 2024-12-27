@@ -8,9 +8,6 @@ from typing import List, Tuple
 import pytest
 
 CWD = os.path.dirname(__file__)
-Easy = os.path.join(CWD, "Easy")
-def under_Easy(file):
-    return os.path.join(Easy, file)
 Compiler = os.path.join(CWD, "..", "src/main.py")
 Runtime = os.path.join(CWD, "..", "runtime/runtime.c")
 
