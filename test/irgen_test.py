@@ -6,7 +6,7 @@ import sys
 import pytest
 
 CWD = os.path.dirname(__file__)
-Compiler = os.path.join(CWD, "..", "src/main.py")
+Compiler = os.path.join(CWD, "..", "python/src/main.py")
 Runtime = os.path.join(CWD, "..", "runtime/runtime.c")
 
 class SYCase:
