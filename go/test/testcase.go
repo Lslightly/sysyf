@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 )
 
@@ -70,6 +71,9 @@ func GenTestCases(root string) []TestCase {
 	for _, v := range caseSet {
 		result = append(result, v)
 	}
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Id < result[j].Id
+	})
 	return result
 }
 
