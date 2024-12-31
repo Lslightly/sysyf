@@ -58,27 +58,63 @@ func (builder *Builder) VisitConst_def(ctx *parser.Const_defContext) interface{}
 
 // Visit a parse tree produced by SysYFParser#single.
 func (builder *Builder) VisitSingle(ctx *parser.SingleContext) interface{} {
-	return builder.Visit(ctx.Exp())
+	return []Expr{builder.Visit(ctx.Exp()).(Expr)}
 }
 
 // Visit a parse tree produced by SysYFParser#arrayEmpty.
 func (builder *Builder) VisitArrayEmpty(ctx *parser.ArrayEmptyContext) interface{} {
-	return nil
+	return []Expr{}
 }
 
 // Visit a parse tree produced by SysYFParser#arrayMul.
 func (builder *Builder) VisitArrayMul(ctx *parser.ArrayMulContext) interface{} {
-	panic("unreachable")
+	initExprs := make([]Expr, 0, len(ctx.AllExp()))
+	for _, exp := range ctx.AllExp() {
+		initExprs = append(initExprs, builder.Visit(exp).(Expr))
+	}
+	return initExprs
 }
 
 // Visit a parse tree produced by SysYFParser#var_decl.
 func (builder *Builder) VisitVar_decl(ctx *parser.Var_declContext) interface{} {
-	panic("unreachable")
+	decl := &VarDeclStmt{}
+	typ := builder.Visit(ctx.Btype()).(Type)
+	defs := make([]*VarDef, 0, len(ctx.AllVar_def()))
+	for _, def := range ctx.AllVar_def() {
+		def := builder.Visit(def).(*VarDef)
+		def.Parent = decl
+		defs = append(defs, def)
+	}
+	decl.IsConst = false
+	decl.Typ = typ
+	decl.Defs = defs
+	return decl
 }
 
 // Visit a parse tree produced by SysYFParser#var_def.
 func (builder *Builder) VisitVar_def(ctx *parser.Var_defContext) interface{} {
-	panic("unreachable")
+	defStmt := &VarDef{}
+	defStmt.Name = ctx.Ident().GetText()
+	var arrLen *Expr = nil
+	if ctx.LBRACKET() != nil {
+		arrLen = new(Expr)
+		if ctx.INT() != nil {
+			val, err := strconv.Atoi(ctx.INT().GetText())
+			if err != nil {
+				panic(err)
+			}
+			*arrLen = IntLit(val)
+		} else {
+			*arrLen = nil
+		}
+	}
+	defStmt.ArrayLen = arrLen
+	defStmt.InitVals = nil
+	if ctx.Const_init_val() != nil {
+		initVals := builder.Visit(ctx.Const_init_val()).([]Expr)
+		defStmt.InitVals = &initVals
+	}
+	return defStmt
 }
 
 // Visit a parse tree produced by SysYFParser#func_def.
@@ -125,7 +161,10 @@ func (builder *Builder) VisitStmt(ctx *parser.StmtContext) interface{} {
 
 // Visit a parse tree produced by SysYFParser#assign_stmt.
 func (builder *Builder) VisitAssign_stmt(ctx *parser.Assign_stmtContext) interface{} {
-	panic("unreachable")
+	stmt := &AssignStmt{}
+	stmt.Lhs = builder.Visit(ctx.Lval()).(*LVal)
+	stmt.Rhs = builder.Visit(ctx.Exp()).(Expr)
+	return stmt
 }
 
 // Visit a parse tree produced by SysYFParser#empty_stmt.
@@ -168,17 +207,35 @@ func (builder *Builder) VisitReturn_stmt(ctx *parser.Return_stmtContext) interfa
 
 // Visit a parse tree produced by SysYFParser#cond_exp.
 func (builder *Builder) VisitCond_exp(ctx *parser.Cond_expContext) interface{} {
-	panic("unreachable")
+	if ctx.Exp() != nil {
+		return builder.Visit(ctx.Exp())
+	}
+	op := GetBinaryOp(ctx.GetChild(1).(antlr.TerminalNode).GetText())
+	return &BinaryExpr{
+		Op:  op,
+		Lhs: builder.Visit(ctx.Cond_exp(0)).(Expr),
+		Rhs: builder.Visit(ctx.Cond_exp(1)).(Expr),
+	}
 }
 
 // Visit a parse tree produced by SysYFParser#binaryHigh.
 func (builder *Builder) VisitBinaryHigh(ctx *parser.BinaryHighContext) interface{} {
-	panic("unreachable")
+	op := GetBinaryOp(ctx.GetChild(1).(antlr.TerminalNode).GetText())
+	return &BinaryExpr{
+		Op:  op,
+		Lhs: builder.Visit(ctx.Exp(0)).(Expr),
+		Rhs: builder.Visit(ctx.Exp(1)).(Expr),
+	}
 }
 
 // Visit a parse tree produced by SysYFParser#binaryLow.
 func (builder *Builder) VisitBinaryLow(ctx *parser.BinaryLowContext) interface{} {
-	panic("unreachable")
+	op := GetBinaryOp(ctx.GetChild(1).(antlr.TerminalNode).GetText())
+	return &BinaryExpr{
+		Op:  op,
+		Lhs: builder.Visit(ctx.Exp(0)).(Expr),
+		Rhs: builder.Visit(ctx.Exp(1)).(Expr),
+	}
 }
 
 // Visit a parse tree produced by SysYFParser#unary.
@@ -215,7 +272,13 @@ func (builder *Builder) VisitFunc_call(ctx *parser.Func_callContext) interface{}
 
 // Visit a parse tree produced by SysYFParser#lval.
 func (builder *Builder) VisitLval(ctx *parser.LvalContext) interface{} {
-	panic("unreachable")
+	lval := &LVal{}
+	lval.Name = ctx.Ident().GetText()
+	lval.ArrayIdx = nil
+	if ctx.Exp() != nil {
+		lval.ArrayIdx = builder.Visit(ctx.Exp()).(Expr)
+	}
+	return lval
 }
 
 // Visit a parse tree produced by SysYFParser#ident.
@@ -232,11 +295,15 @@ func (builder *Builder) VisitNumber(ctx *parser.NumberContext) interface{} {
 		}
 		return IntLit(val)
 	}
-	val, err := strconv.ParseFloat(ctx.FLOAT().GetText(), 32)
+	floatStr := ctx.FLOAT().GetText()
+	val, err := strconv.ParseFloat(floatStr, 32)
 	if err != nil {
 		panic(err)
 	}
-	return FloatLit(val)
+	return FloatLit{
+		Val: float32(val),
+		Len: len(floatStr),
+	}
 }
 
 func (builder *Builder) Visit(tree antlr.ParseTree) interface{} {

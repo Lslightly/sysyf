@@ -1,3 +1,3 @@
-GlobalDef:_gdef:    *VarDefStmt|*FuncDef
+GlobalDef:_gdef:    *VarDeclStmt|*FuncDef
 Expr:_expr: *BinaryExpr|*UnaryExpr|*EmptyExpr|*LVal|*FuncCallExpr|*BracketExpr|IntLit|FloatLit
-Stmt:_stmt:  *AssignStmt|*ExprStmt|*EmptyStmt|*VarDefStmt|*IfStmt|*WhileStmt|*BreakStmt|*ContinueStmt|*ReturnStmt|*BlockStmt
+Stmt:_stmt:  *AssignStmt|*ExprStmt|*EmptyStmt|*VarDeclStmt|*IfStmt|*WhileStmt|*BreakStmt|*ContinueStmt|*ReturnStmt|*BlockStmt

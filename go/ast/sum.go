@@ -4,7 +4,7 @@ package ast
 type _gdef interface {
 	_gdef() // not exported dummy method
 }
-func (*VarDefStmt) _gdef() {}
+func (*VarDeclStmt) _gdef() {}
 func (*FuncDef) _gdef() {}
 
 type _expr interface {
@@ -25,7 +25,7 @@ type _stmt interface {
 func (*AssignStmt) _stmt() {}
 func (*ExprStmt) _stmt() {}
 func (*EmptyStmt) _stmt() {}
-func (*VarDefStmt) _stmt() {}
+func (*VarDeclStmt) _stmt() {}
 func (*IfStmt) _stmt() {}
 func (*WhileStmt) _stmt() {}
 func (*BreakStmt) _stmt() {}

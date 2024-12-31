@@ -1,5 +1,7 @@
 package ast
 
+import "fmt"
+
 // BinaryOp
 type BinaryOp int
 
@@ -11,8 +13,7 @@ type Type int
 
 // BinaryOp
 const (
-	_ BinaryOp = iota
-	OR
+	OR BinaryOp = iota
 	AND
 	EQ
 	NEQ
@@ -25,7 +26,33 @@ const (
 	MUL
 	DIV
 	MOD
+	ALLBinaryOp
 )
+
+var BinaryOpStr = map[BinaryOp]string{
+	OR:  "||",
+	AND: "&&",
+	EQ:  "==",
+	NEQ: "!=",
+	LT:  "<",
+	LTE: "<=",
+	GT:  ">",
+	GTE: ">=",
+	ADD: "+",
+	SUB: "-",
+	MUL: "*",
+	DIV: "/",
+	MOD: "%",
+}
+
+func GetBinaryOp(op string) BinaryOp {
+	for i := range ALLBinaryOp {
+		if BinaryOpStr[i] == op {
+			return i
+		}
+	}
+	panic(fmt.Sprintf("invalid binary op: %s", op))
+}
 
 // UnaryOp
 const (
@@ -46,7 +73,10 @@ const (
 // Expr
 
 type IntLit int
-type FloatLit float32
+type FloatLit struct {
+	Val float32
+	Len int
+}
 
 type BinaryExpr struct {
 	Op       BinaryOp
@@ -91,14 +121,23 @@ type ExprStmt struct {
 
 type EmptyStmt struct{}
 
-type VarDefStmt struct {
+type VarDeclStmt struct {
 	IsConst bool
 	Typ     Type
-	Name    string
+	Defs    []*VarDef
+}
+type VarDef struct {
+	Parent *VarDeclStmt
+	Name   string
 	/*
 		ArrayLen == nil means no ArrayLen
+		*ArrayLen == nil means no len definition
 	*/
 	ArrayLen *Expr
+	/*
+		InitVals == nil means no init vals expr in AST
+		*InitVals is the init vals
+	*/
 	InitVals *[]Expr
 }
 
