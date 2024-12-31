@@ -74,6 +74,10 @@ type FuncCallExpr struct {
 	Args     []Expr
 }
 
+type BracketExpr struct {
+	Exp Expr
+}
+
 // Stmt
 
 type AssignStmt struct {

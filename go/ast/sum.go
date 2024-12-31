@@ -15,6 +15,7 @@ func (*UnaryExpr) _expr() {}
 func (*EmptyExpr) _expr() {}
 func (*LVal) _expr() {}
 func (*FuncCallExpr) _expr() {}
+func (*BracketExpr) _expr() {}
 func (IntLit) _expr() {}
 func (FloatLit) _expr() {}
 

@@ -17,6 +17,8 @@ func PrintAST(inputFile string, rule string) string {
 	}
 	astBuilder := NewASTBuilder()
 	ast := astBuilder.Visit(tree).(*Assembly)
-	ctx := &Context{}
+	ctx := &Context{
+		indentTimes: 0,
+	}
 	return ast.Print(ctx)
 }

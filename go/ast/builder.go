@@ -183,7 +183,13 @@ func (builder *Builder) VisitBinaryLow(ctx *parser.BinaryLowContext) interface{}
 
 // Visit a parse tree produced by SysYFParser#unary.
 func (builder *Builder) VisitUnary(ctx *parser.UnaryContext) interface{} {
-	panic("unreachable")
+	exp := builder.Visit(ctx.Exp()).(Expr)
+	if ctx.PLUS() != nil {
+		return &UnaryExpr{Op: POS, Exp: exp}
+	} else if ctx.MINUS() != nil {
+		return &UnaryExpr{Op: NEG, Exp: exp}
+	}
+	return &UnaryExpr{Op: NOT, Exp: exp}
 }
 
 // Visit a parse tree produced by SysYFParser#otherexpAlt.
@@ -194,7 +200,10 @@ func (builder *Builder) VisitOtherexpAlt(ctx *parser.OtherexpAltContext) interfa
 // Visit a parse tree produced by SysYFParser#otherexp.
 func (builder *Builder) VisitOtherexp(ctx *parser.OtherexpContext) interface{} {
 	if ctx.Exp() != nil {
-		return builder.Visit(ctx.Exp())
+		exp := builder.Visit(ctx.Exp()).(Expr)
+		return &BracketExpr{
+			Exp: exp,
+		}
 	}
 	return builder.VisitOneNonTerminalChild(&ctx.BaseParserRuleContext)
 }

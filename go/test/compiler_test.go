@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"strings"
 	"testing"
 
@@ -75,6 +76,7 @@ func TestASTBuilder(t *testing.T) {
 			defer func() {
 				if err := recover(); err != nil {
 					t.Errorf("%s failed: %v", testcase.Id, err)
+					t.Errorf("%s", debug.Stack())
 				}
 			}()
 			content := ast.PrintAST(testcase.SYPath(), "Comp_unit")

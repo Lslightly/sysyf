@@ -6,7 +6,8 @@ import (
 )
 
 type Context struct {
-	indentTimes int
+	indentTimes     int
+	ExprWithBracket map[Expr]bool
 }
 
 func printIndent(times int) string {
@@ -30,8 +31,27 @@ func (node IntLit) Print(ctx *Context) string { return fmt.Sprintf("%d", node) }
 func (node FloatLit) Print(ctx *Context) string {
 	return fmt.Sprintf("%f", node)
 }
-func (node *BinaryExpr) Print(ctx *Context) string   { panic("unreachable") }
-func (node *UnaryExpr) Print(ctx *Context) string    { panic("unreachable") }
+func (node *BinaryExpr) Print(ctx *Context) string { panic("unreachable") }
+func (node *UnaryExpr) Print(ctx *Context) string {
+	var op string
+	switch node.Op {
+	case POS:
+		op = "+"
+	case NEG:
+		op = "-"
+	case NOT:
+		op = "!"
+	default:
+		panic("unreachable")
+	}
+	if ctx.ExprWithBracket[node] {
+		return fmt.Sprintf("(%s%s)", op, node.Exp.Print(ctx))
+	}
+	return fmt.Sprintf("%s%s", op, node.Exp.Print(ctx))
+}
+func (node *BracketExpr) Print(ctx *Context) string {
+	return fmt.Sprintf("(%s)", node.Exp.Print(ctx))
+}
 func (node *EmptyExpr) Print(ctx *Context) string    { panic("unreachable") }
 func (node *LVal) Print(ctx *Context) string         { panic("unreachable") }
 func (node *FuncCallExpr) Print(ctx *Context) string { panic("unreachable") }
